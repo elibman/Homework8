@@ -122,13 +122,88 @@ def get_highest_rating(db): #Do this through DB as well
     The second bar chart displays the buildings along the y-axis and their ratings along the x-axis 
     in descending order (by rating).
     """
-    pass
+    import sqlite3
+import matplotlib.pyplot as plt
+
+def get_highest_rating(db):
+    # Connect to the database
+    conn = sqlite3.connect(db)
+    cur = conn.cursor()
+
+    # Get the highest-rated restaurant category and its average rating
+    cur.execute("""
+        SELECT categories.category, AVG(restaurants.rating)
+        FROM restaurants
+        JOIN categories ON restaurants.category_id = categories.id
+        GROUP BY categories.category
+        ORDER BY AVG(restaurants.rating) DESC
+        LIMIT 1
+    """)
+    highest_cat, avg_cat_rating = cur.fetchone()
+
+    # Get the building with the highest-rated restaurants and its average rating
+    cur.execute("""
+        SELECT buildings.building, AVG(restaurants.rating)
+        FROM restaurants
+        JOIN buildings ON restaurants.building_id = buildings.id
+        GROUP BY buildings.building
+        ORDER BY AVG(restaurants.rating) DESC
+        LIMIT 1
+    """)
+    highest_building, avg_building_rating = cur.fetchone()
+
+    # Close the database connection
+
+    # Plot the bar charts
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
+
+    # Plot the bar chart for restaurant categories
+    cur.execute("""
+        SELECT categories.category, AVG(restaurants.rating)
+        FROM restaurants
+        JOIN categories ON restaurants.category_id = categories.id
+        GROUP BY categories.category
+        ORDER BY AVG(restaurants.rating) DESC
+    """)
+    data = cur.fetchall()
+    categories, ratings = zip(*data)
+    ax1.bar(categories, ratings)
+    ax1.set_title("Restaurant Categories by Average Rating")
+    ax1.set_xlabel("Category")
+    ax1.set_ylabel("Average Rating")
+    ax1.tick_params(axis="x", rotation=90)
+
+    # Plot the bar chart for buildings
+    cur.execute("""
+        SELECT buildings.building, AVG(restaurants.rating)
+        FROM restaurants
+        JOIN buildings ON restaurants.building_id = buildings.id
+        GROUP BY buildings.building
+        ORDER BY AVG(restaurants.rating) DESC
+    """)
+    data = cur.fetchall()
+    buildings, ratings = zip(*data)
+    ax2.bar(buildings, ratings)
+    ax2.set_title("Buildings by Average Rating")
+    ax2.set_xlabel("Building")
+    ax2.set_ylabel("Average Rating")
+    ax2.tick_params(axis="x", rotation=90)
+
+    # Show the plot
+    plt.show()
+
+    # Return the results as a list of tuples
+    #print([(highest_cat, avg_cat_rating), (highest_building, avg_building_rating)])
+    return [(highest_cat, avg_cat_rating), (highest_building, avg_building_rating)]
+
 
 #Try calling your functions here
 def main():
     # load_rest_data("South_U_Restaurants.db")
     # plot_rest_categories("South_U_Restaurants.db")
-    find_rest_in_building(1140, 'South_U_Restaurants.db')
+    #find_rest_in_building(1140, 'South_U_Restaurants.db')
+    get_highest_rating("South_U_Restaurants.db")
+    
 
 class TestHW8(unittest.TestCase):
     def setUp(self):
@@ -173,9 +248,9 @@ class TestHW8(unittest.TestCase):
         self.assertEqual(len(restaurant_list), 3)
         self.assertEqual(restaurant_list[0], 'BTB Burrito')
 
-#     def test_get_highest_rating(self):
-#         highest_rating = get_highest_rating('South_U_Restaurants.db')
-#         self.assertEqual(highest_rating, self.highest_rating)
+    def test_get_highest_rating(self):
+        highest_rating = get_highest_rating('South_U_Restaurants.db')
+        self.assertEqual(highest_rating, self.highest_rating)
 
 if __name__ == '__main__':
     main()
