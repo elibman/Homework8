@@ -122,10 +122,7 @@ def get_highest_rating(db): #Do this through DB as well
     The second bar chart displays the buildings along the y-axis and their ratings along the x-axis 
     in descending order (by rating).
     """
-    import sqlite3
-import matplotlib.pyplot as plt
 
-def get_highest_rating(db):
     # Connect to the database
     conn = sqlite3.connect(db)
     cur = conn.cursor()
